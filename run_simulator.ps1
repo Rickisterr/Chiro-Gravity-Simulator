@@ -5,13 +5,21 @@ param (
 
 $filename = "${filename}_gravity_test"
 
-if (Test-Path "$filename.cpp") {
+if (Test-Path "src/$filename.cpp") {
     switch ($build) {
         "build" {
-            g++ "$filename.cpp" "C:/msys64/ucrt64/src/glad.c" -o "$filename.exe" -I "C:/msys64/ucrt64/include" -L "C:/msys64/ucrt64/lib" -lglew32 -lglfw3 -lopengl32 -lgdi32
+            if (-not (Test-Path "build")) {
+                mkdir "build"
+            }
+            g++ "src/$filename.cpp" "src/Models.cpp" "C:/msys64/ucrt64/src/glad.c" -o "build/$filename.exe" -I "C:/msys64/ucrt64/include" -L "C:/msys64/ucrt64/lib" -lglew32 -lglfw3 -lopengl32 -lgdi32
         }
         "run" {
-            Start-Process -NoNewWindow -FilePath ".\$filename.exe"
+            try {
+                Start-Process -NoNewWindow -FilePath "build/$filename.exe"
+            }
+            catch {
+                Write-Output "Failed to run: Try building again before running"
+            }
         }
         default {
             Write-Output "ValueError: Second argument should only be 'build' or 'run'"

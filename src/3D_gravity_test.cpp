@@ -4,11 +4,12 @@
 #include <vector>
 
 #include <glad/glad.h>
-// #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "../include/Models.h"
 
 
 // Default options values at starting
@@ -16,11 +17,9 @@ float FoV = 45;
 float nearClippingVal = 0.5f;                                           // Too small causes precision issues
 float farClippingVal = 100.0f;                                          // Too big requires too much computation
 glm::vec3 cameraPosn = glm::vec3(0.0f, 0.0f, 0.0f);                     // camera position
-// glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);                   // position of camera focus
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);                   // front direction of camera
-// glm::vec3 cameraDirection = glm::normalize(cameraPosn - cameraTarget);  // direction of camera View
 glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);                       // direction of camera's z axis
-const float cameraSpeed = 0.5f;                                         // Speed of camera movements
+const float cameraSpeed = 0.2f;
 
 const char* vertexShaderScript = R"glsl(
     #version 330 core
@@ -33,14 +32,6 @@ const char* vertexShaderScript = R"glsl(
     }
 )glsl";
 
-// const char* vertexShaderScript = R"glsl(
-//     #version 330 core
-//     layout (location = 0) in vec3 Posn;
-//     void main() {
-//         gl_Position = vec4(Posn, 1.0);
-//     }
-// )glsl";
-
 const char* fragmentShaderScript = R"glsl(
     #version 330 core
     out vec4 FragColor;
@@ -49,70 +40,6 @@ const char* fragmentShaderScript = R"glsl(
         FragColor = currentColor;
     }
 )glsl";
-
-
-class Body{
-    /*
-    Class for Models in simulation
-    
-    Args:
-    VAO -> vertex array object referring to Model in memory
-    VBO -> vertex buffer object describing Model's properties
-    vertices -> list of vertices coordinates describing Model
-    color -> vector of RGB values and opacity value in float
-    shader -> shaders program script compiled, loaded, and linked into the graphics memory
-    */
-    public:
-        GLuint VAO, VBO;
-        glm::vec3 position;
-        std::vector<float> vertices;
-        GLuint shader;
-        std::vector<float> color;
-
-        Body(GLuint VAO, GLuint VBO, std::vector<float> vertices, glm::vec3 position, std::vector<float> color, GLuint shader) {
-            this->VAO = VAO;
-            this->VBO = VBO;
-
-            this->position = position;
-            this->vertices = vertices;
-            this->color = color;
-
-            this->shader = shader;
-
-            create_body();
-
-            return;
-        }
-
-        void create_body() {
-            glGenVertexArrays(1, &this->VAO);
-            glGenBuffers(1, &this->VBO);
-
-            glBindVertexArray(this->VAO);
-            glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-            glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(float), this->vertices.data(), GL_STATIC_DRAW);
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-            glEnableVertexAttribArray(0);
-
-            glBindVertexArray(0);
-
-            return;
-        }
-
-        void draw_body() {
-            glm::mat4 Model = glm::mat4(1.0f);
-            Model = glm::translate(Model, this->position);
-            glUniformMatrix4fv(glGetUniformLocation(this->shader, "Model"), 1, GL_FALSE, glm::value_ptr(Model));
-
-            glUniform4f(glGetUniformLocation(this->shader, "currentColor"), this->color[0], this->color[1], this->color[2], this->color[3]);
-            glBindVertexArray(this->VAO);
-            glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 3);
-
-            return;
-        }
-};
-
 
 void processWindowCloseInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -136,7 +63,6 @@ void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods
 
     // Update cameraPosn View
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        // printf("%f, %f, %f", cameraPosn.x, cameraPosn.y, cameraPosn.z);
         cameraPosn += cameraSpeed * glm::normalize(glm::cross(cameraFront, upVector));
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
@@ -150,6 +76,34 @@ void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods
     }
 }
 
+std::vector<Body> InitializeModels(GLuint shader) {
+    std::vector<Body> bodies;
+
+    // Planet 1
+    float radius1 = 1.5f;
+    Body planet1(radius1, glm::vec3(0.0f, 0.0f, 0.5f), {1.0f, 0.0f, 0.0f, 1.0f}, shader);
+    bodies.push_back(planet1);
+
+    // Planet 2
+    float radius2 = 0.5f;
+    Body planet2(radius2, glm::vec3(-1.0f, -1.0f, -0.5f), {1.0f, 0.0f, 1.0f, 1.0f}, shader);
+    bodies.push_back(planet2);
+
+    return bodies;
+}
+
+void DrawModels(std::vector<Body> bodies) {
+    int size = bodies.size();
+    
+    for (int idx=0; idx<size; idx++) {
+        bodies[idx].draw_body();
+    }
+
+    return;
+}
+
+
+
 
 // MAIN PROGRAM
 int main() {
@@ -162,7 +116,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     // Creating window
-    GLFWwindow* window = glfwCreateWindow(800, 600, "2D Gravity Simulator", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "3D Gravity Simulator", NULL, NULL);
 
     if (window == NULL){
         printf("Failed to create window\n");
@@ -217,27 +171,9 @@ int main() {
     glDeleteShader(fragShader);
 
     // Initializing Models
-    // Planet 1
-    GLuint VAO1, VBO1;
-    std::vector<float> vertices_planet1 = {
-        0.0f, 0.5f, 0.5f,
-        0.5f, 0.0f, 0.5f,
-        0.5f, 0.5f, 0.5f,
-        0.0f, 0.0f, 0.5f,
-        0.3f, 0.3f, 0.5f,
-        0.6f, 0.6f, 0.5f
-    };
-    Body planet1(VAO1, VBO1, vertices_planet1, glm::vec3(0.0f, 0.0f, 0.5f), {1.0f, 0.0f, 0.0f, 1.0f}, shader);
+    std::vector<Body> bodies = InitializeModels(shader);
 
-    // Planet 2
-    GLuint VAO2, VBO2;
-    std::vector<float> vertices_planet2 = {
-        -0.1f, -0.1f, 0.0f,
-        0.1f, -0.1f, 0.0f,
-        0.0f,  0.1f, 0.0f
-    };
-    Body planet2(VAO2, VBO2, vertices_planet2, glm::vec3(-0.2f, -0.2f, -0.5f), {0.0f, 0.0f, 1.0f, 1.0f}, shader);
-
+    // Using shader program
     glUseProgram(shader);
     glEnable(GL_DEPTH_TEST);
 
@@ -264,8 +200,7 @@ int main() {
         glUniformMatrix4fv(glGetUniformLocation(shader, "Perspective"), 1, GL_FALSE, glm::value_ptr(Perspective));
 
         // Drawing Models
-        planet1.draw_body();
-        planet2.draw_body();
+        DrawModels(bodies);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

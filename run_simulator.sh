@@ -3,16 +3,19 @@
 filename=$1_gravity_test
 build=$2
 
-if [ -e "$filename.cpp" ]
+if [ -e "src/$filename.cpp" ]
 then
     case $build in
     "build")
-        g++ $filename.cpp /usr/src/glad.c -o $filename.exe -I /usr/include -L /usr/lib -lGLEW -lglfw -lGL
+        if [ ! -e "build" ]
+        then
+            mkdir "build"
+        fi
+        g++ src/$filename.cpp src/Models.cpp /usr/src/glad.c -o build/$filename.exe -I /usr/include -L /usr/lib -lGLEW -lglfw -lGL
         ;;
 
     "run")
-        $2
-        ./$filename.exe
+        ./build/$filename.exe
         ;;
 
     *)
