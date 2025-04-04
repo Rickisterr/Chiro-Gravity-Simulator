@@ -9,14 +9,13 @@
 
 const float pi = acosf(-1);
 
-int rowsCount = 15;
-int columnsCount = 20;
+int rowsCount = 20;
+int columnsCount = 30;
 
 Body::Body(float radius, glm::vec3 position, std::vector<float> color, GLuint shader) {
 
     this->position = position;
     this->radius = radius;
-    // this->vertices = vertices;
     this->color = color;
 
     this->shader = shader;
@@ -36,7 +35,9 @@ void Body::compute_vertices() {
     
     // For each quad in the sphere grid, 2 triangles
     for (int i = 0; i < columnsCount; i++) {
+        
         for (int j = 0; j < rowsCount; j++) {
+
             // Vertex 1: (i, j)
             float columnAngle1 = (pi / 2) - (i * columnStep);
             float rowAngle1 = j * rowStep;

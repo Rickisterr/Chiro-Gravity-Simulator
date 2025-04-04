@@ -13,13 +13,25 @@
 
 
 // Default options values at starting
-float FoV = 45;
+float FoV = 45.0f;
 float nearClippingVal = 0.5f;                                           // Too small causes precision issues
 float farClippingVal = 100.0f;                                          // Too big requires too much computation
 glm::vec3 cameraPosn = glm::vec3(0.0f, 0.0f, 0.0f);                     // camera position
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);                   // front direction of camera
 glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);                       // direction of camera's z axis
 const float cameraSpeed = 0.2f;
+const float mouseSensitivity = 0.2f;
+
+// Global variables at start of program
+GLFWmonitor* monitor = nullptr;
+bool isFullscreen = false;
+bool mouseInit = true;
+int windowPosX, windowPosY;
+int windowWidth = 1920;
+int windowHeight = 1080;
+double last_x, last_y;
+float yaw = -90.0f;
+float pitch = 90.0f;
 
 const char* vertexShaderScript = R"glsl(
     #version 330 core
@@ -50,7 +62,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     float aspectRatio = (float)width / (float)height;
 
     // Update projection matrix
-    glm::mat4 Perspective = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+    glm::mat4 Perspective = glm::perspective(glm::radians(FoV), aspectRatio, nearClippingVal, farClippingVal);
 }
 
 void processWindowCloseInput(GLFWwindow* window) {
@@ -76,6 +88,41 @@ void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods
     }
 }
 
+void mouseCallback(GLFWwindow* window, double mouse_x, double mouse_y) {
+    // When program starts, capture x and y for the first time
+    if (mouseInit) {
+        last_x = mouse_x;
+        last_y = mouse_y;
+        mouseInit = false;
+    }
+
+    float delta_x = (mouse_x - last_x) * mouseSensitivity;
+    float delta_y = (last_y - mouse_y) * mouseSensitivity;          // negative causes y-axis inversion
+
+    last_x = mouse_x;
+    last_y = mouse_y;
+
+    // Changing angle of camera orientation depending on mouse distance change
+    yaw += delta_x;
+    pitch += delta_y;
+
+    // Making sure camera stays limited to an up and down looking value
+    if (pitch > 89.0f) {
+        pitch = 89.0f;
+    }
+    if (pitch < -89.0f) {
+        pitch = -89.0f;
+    }
+
+    float x_new = cosf(glm::radians(yaw)) * cosf(glm::radians(pitch));
+    float y_new = sinf(glm::radians(pitch));
+    float z_new = sinf(glm::radians(yaw)) * cosf(glm::radians(pitch));
+    // Updating camera orientation according to calculations
+    cameraFront = glm::normalize(glm::vec3(x_new, y_new, z_new));
+
+    return;
+}
+
 std::vector<Body> InitializeModels(GLuint shader) {
     std::vector<Body> bodies;
 
@@ -86,7 +133,7 @@ std::vector<Body> InitializeModels(GLuint shader) {
 
     // Planet 2
     float radius2 = 0.5f;
-    Body planet2(radius2, glm::vec3(-1.0f, -1.0f, -0.5f), {1.0f, 0.0f, 1.0f, 1.0f}, shader);
+    Body planet2(radius2, glm::vec3(-1.0f, -1.0f, 0.5f), {1.0f, 0.0f, 1.0f, 1.0f}, shader);
     bodies.push_back(planet2);
 
     return bodies;
@@ -116,7 +163,8 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     // Creating window
-    GLFWwindow* window = glfwCreateWindow(800, 600, "3D Gravity Simulator", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "3D Gravity Simulator", NULL, NULL);
+    float aspectRatio = (float)windowWidth / (float)windowHeight;
 
     if (window == NULL){
         printf("Failed to create window\n");
@@ -179,17 +227,20 @@ int main() {
 
     // Transformation matrices involved in 3D
     glm::mat4 View = glm::lookAt(cameraPosn, cameraPosn + cameraFront, upVector);
-    glm::mat4 Perspective = glm::perspective(glm::radians(FoV), 4.0f / 3.0f, nearClippingVal, farClippingVal);
+    glm::mat4 Perspective = glm::perspective(glm::radians(FoV), aspectRatio, nearClippingVal, farClippingVal);
 
     glUniformMatrix4fv(glGetUniformLocation(shader, "View"), 1, GL_FALSE, glm::value_ptr(View));
     glUniformMatrix4fv(glGetUniformLocation(shader, "Perspective"), 1, GL_FALSE, glm::value_ptr(Perspective));
 
     glfwSetKeyCallback(window, keyCallBack);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouseCallback);
 
     // Render Loop
     while(!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glfwSetCursorPosCallback(window, mouseCallback);
         glfwSetKeyCallback(window, keyCallBack);
 
         processWindowCloseInput(window);
