@@ -10,17 +10,21 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "../include/Models.h"
+#include "../include/SpaceTimeFabric.h"
 
 
 // Default options values at starting
 float FoV = 45.0f;
 float nearClippingVal = 0.5f;                                           // Too small causes precision issues
 float farClippingVal = 100.0f;                                          // Too big requires too much computation
-glm::vec3 cameraPosn = glm::vec3(0.0f, 0.0f, 0.0f);                     // camera position
+glm::vec3 cameraPosn = glm::vec3(-30.0f, 4.0f, 0.0f);                   // camera position
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);                   // front direction of camera
 glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);                       // direction of camera's z axis
 const float cameraSpeed = 0.2f;
 const float mouseSensitivity = 0.2f;
+const float gridStep = 1.0f;
+const int gridSquares = 25;
+float y_grid = -1.0f;
 
 // Global variables at start of program
 GLFWmonitor* monitor = nullptr;
@@ -30,8 +34,8 @@ int windowPosX, windowPosY;
 int windowWidth = 1920;
 int windowHeight = 1080;
 double last_x, last_y;
-float yaw = -90.0f;
-float pitch = 90.0f;
+float yaw = 0.0f;
+float pitch = 0.0f;
 
 const char* vertexShaderScript = R"glsl(
     #version 330 core
@@ -123,6 +127,7 @@ void mouseCallback(GLFWwindow* window, double mouse_x, double mouse_y) {
     float x_new = cosf(glm::radians(yaw)) * cosf(glm::radians(pitch));
     float y_new = sinf(glm::radians(pitch));
     float z_new = sinf(glm::radians(yaw)) * cosf(glm::radians(pitch));
+
     // Updating camera orientation according to calculations
     cameraFront = glm::normalize(glm::vec3(x_new, y_new, z_new));
 
@@ -139,10 +144,17 @@ std::vector<Body> InitializeModels(GLuint shader) {
 
     // Planet 2
     float radius2 = 0.5f;
-    Body planet2(radius2, glm::vec3(-1.0f, -1.0f, 0.5f), {1.0f, 0.0f, 1.0f, 1.0f}, shader);
+    Body planet2(radius2, glm::vec3(-1.0f, -0.5f, 0.5f), {1.0f, 0.0f, 1.0f, 1.0f}, shader);
     bodies.push_back(planet2);
 
     return bodies;
+}
+
+Fabric InitializeGrid(GLuint shader) {
+
+    Fabric grid(gridStep, gridSquares, glm::vec3(0.0f, y_grid, 0.0f), {1.0f, 1.0f, 1.0f, 1.0f}, y_grid, shader);
+
+    return grid;
 }
 
 void DrawModels(std::vector<Body> bodies) {
@@ -153,6 +165,10 @@ void DrawModels(std::vector<Body> bodies) {
     }
 
     return;
+}
+
+void DrawGrid(Fabric grid) {
+    grid.draw_fabric();
 }
 
 
@@ -223,8 +239,9 @@ int main() {
     glDeleteShader(vertexShader);
     glDeleteShader(fragShader);
 
-    // Initializing Models
+    // Initializing Models and Space Time Fabric Grid
     std::vector<Body> bodies = InitializeModels(shader);
+    Fabric grid = InitializeGrid(shader);
 
     // Using shader program
     glUseProgram(shader);
@@ -257,6 +274,7 @@ int main() {
 
         // Drawing Models
         DrawModels(bodies);
+        DrawGrid(grid);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

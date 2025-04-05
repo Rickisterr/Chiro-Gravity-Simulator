@@ -13,14 +13,13 @@ extern int rowsCount;
 extern int columnsCount;
 extern const float pi;
 
-class Body{
+class Body {
     /*
     Class for Models in simulation
     
     Args:
-    VAO -> vertex array object referring to Model in memory
-    VBO -> vertex buffer object describing Model's properties
-    vertices -> list of vertices coordinates describing Model
+    radius -> radius of body in OpenGL axis measurements
+    position -> spatial position of center of sphere
     color -> vector of RGB values and opacity value in float
     shader -> shaders program script compiled, loaded, and linked into the graphics memory
     */

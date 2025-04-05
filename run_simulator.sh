@@ -11,7 +11,7 @@ then
         then
             mkdir "build"
         fi
-        g++ src/$filename.cpp src/Models.cpp /usr/src/glad.c -o build/$filename.exe -I /usr/include -L /usr/lib -lGLEW -lglfw -lGL
+        g++ src/$filename.cpp src/Models.cpp src/SpaceTimeFabric.cpp /usr/src/glad.c -o build/$filename.exe -I /usr/include -L /usr/lib -lGLEW -lglfw -lGL
         ;;
 
     "run")
