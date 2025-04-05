@@ -86,6 +86,12 @@ void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         cameraPosn -= cameraSpeed * cameraFront;
     }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        cameraPosn += cameraSpeed * glm::normalize(glm::cross(glm::cross(cameraFront, upVector), cameraFront));
+    }
+    if ((glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) or (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS)) {
+        cameraPosn -= cameraSpeed * glm::normalize(glm::cross(glm::cross(cameraFront, upVector), cameraFront));
+    }
 }
 
 void mouseCallback(GLFWwindow* window, double mouse_x, double mouse_y) {
@@ -148,7 +154,6 @@ void DrawModels(std::vector<Body> bodies) {
 
     return;
 }
-
 
 
 
