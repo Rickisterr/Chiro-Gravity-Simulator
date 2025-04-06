@@ -4,7 +4,7 @@
 #include <vector>
 #include "../include/json.hpp"
 #include <fstream>
-#include <string.h>
+#include <string>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -29,6 +29,7 @@ struct Config {
     float gridStep;
     int gridSquares;
     float y_grid;
+    float E_val_km;
 } configs;
 
 // Global variables at start of program
@@ -72,12 +73,16 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
     // Update projection matrix
     glm::mat4 Perspective = glm::perspective(glm::radians(configs.FoV), aspectRatio, configs.nearClippingVal, configs.farClippingVal);
+
+    return;
 }
 
 void processWindowCloseInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
+
+    return;
 }
 
 void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -101,6 +106,8 @@ void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods
     if ((glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) or (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS)) {
         configs.cameraPosn -= configs.cameraSpeed * glm::normalize(glm::cross(glm::cross(configs.cameraFront, configs.upVector), configs.cameraFront));
     }
+
+    return;
 }
 
 void mouseCallback(GLFWwindow* window, double mouse_x, double mouse_y) {
@@ -155,24 +162,29 @@ void loadConfigs(const std::string filename) {
     configs.gridStep = json_file["gridStep"];
     configs.gridSquares = json_file["gridSquares"];
     configs.y_grid = json_file["y_grid"];
+    configs.E_val_km = json_file["E_val_km"];
 
     return;
 }
 
 std::vector<Body> InitializeModels(GLuint shader) {
-    std::vector<Body> bodies;
+// void InitializeModels(GLuint shader) {
+    // std::vector<Body> bodies;
+    Bodies bodies("data/BodiesData.json", configs.E_val_km, shader);
+
+    return bodies.get_bodies();
 
     // Planet 1
-    float radius1 = 1.5f;
-    Body planet1(radius1, glm::vec3(0.0f, 0.0f, 0.5f), {1.0f, 0.0f, 0.0f, 1.0f}, shader);
-    bodies.push_back(planet1);
+    // float diameter1 = 1.5f;
+    // Body planet1(diameter1, glm::vec3(0.0f, 0.0f, 0.5f), {1.0f, 0.0f, 0.0f, 1.0f}, shader);
+    // bodies.push_back(planet1);
 
-    // Planet 2
-    float radius2 = 0.5f;
-    Body planet2(radius2, glm::vec3(-1.0f, -0.5f, 0.5f), {1.0f, 0.0f, 1.0f, 1.0f}, shader);
-    bodies.push_back(planet2);
+    // // Planet 2
+    // float diameter2 = 0.5f;
+    // Body planet2(diameter2, glm::vec3(-1.0f, -0.5f, 0.5f), {1.0f, 0.0f, 1.0f, 1.0f}, shader);
+    // bodies.push_back(planet2);
 
-    return bodies;
+    // return bodies;
 }
 
 Fabric InitializeGrid(GLuint shader) {
@@ -269,6 +281,7 @@ int main() {
     glDeleteShader(fragShader);
 
     // Initializing Models and Space Time Fabric Grid
+    // std::vector<Body> bodies = InitializeModels(shader);
     std::vector<Body> bodies = InitializeModels(shader);
     Fabric grid = InitializeGrid(shader);
 

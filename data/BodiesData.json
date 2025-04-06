@@ -1,0 +1,28 @@
+{
+    "planets" : [
+        {
+            "name" : "Blurth",
+            "mass (kg)" : 5.972168e24,
+            "diameter (km)" : 4e5,
+            "init_distance (km)" : 1.521e6,
+            "system" : "Blun",
+            "color" : [0.0, 0.0, 1.0, 1.0]
+        },
+        {
+            "name" : "Blurth2",
+            "mass (kg)" : 5.972168e24,
+            "diameter (km)" : 2e5,
+            "init_distance (km)" : 1.021e6,
+            "system" : "Blun",
+            "color" : [1.0, 0.0, 1.0, 1.0]
+        }
+    ],
+    "stars" : [
+        {
+            "name" : "Blun",
+            "mass (kg)" : 1.9885e30,
+            "diameter (km)" : 1.957e5,
+            "color" : [1.0, 1.0, 0.0, 1.0]
+        }
+    ]
+}
