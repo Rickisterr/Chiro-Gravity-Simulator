@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include "../include/json.hpp"
+#include <fstream>
+#include <string.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -13,18 +16,20 @@
 #include "../include/SpaceTimeFabric.h"
 
 
-// Default options values at starting
-float FoV = 45.0f;
-float nearClippingVal = 0.5f;                                           // Too small causes precision issues
-float farClippingVal = 100.0f;                                          // Too big requires too much computation
-glm::vec3 cameraPosn = glm::vec3(-30.0f, 4.0f, 0.0f);                   // camera position
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);                   // front direction of camera
-glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);                       // direction of camera's z axis
-const float cameraSpeed = 0.2f;
-const float mouseSensitivity = 0.2f;
-const float gridStep = 1.0f;
-const int gridSquares = 25;
-float y_grid = -1.0f;
+// Configurations gathering from Configurations.json file
+struct Config {
+    float FoV;
+    float nearClippingVal;
+    float farClippingVal;
+    glm::vec3 cameraPosn;
+    glm::vec3 cameraFront;
+    glm::vec3 upVector;
+    float cameraSpeed;
+    float mouseSensitivity;
+    float gridStep;
+    int gridSquares;
+    float y_grid;
+} configs;
 
 // Global variables at start of program
 GLFWmonitor* monitor = nullptr;
@@ -66,7 +71,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     float aspectRatio = (float)width / (float)height;
 
     // Update projection matrix
-    glm::mat4 Perspective = glm::perspective(glm::radians(FoV), aspectRatio, nearClippingVal, farClippingVal);
+    glm::mat4 Perspective = glm::perspective(glm::radians(configs.FoV), aspectRatio, configs.nearClippingVal, configs.farClippingVal);
 }
 
 void processWindowCloseInput(GLFWwindow* window) {
@@ -79,22 +84,22 @@ void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods
 
     // Update cameraPosn View
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        cameraPosn += cameraSpeed * glm::normalize(glm::cross(cameraFront, upVector));
+        configs.cameraPosn += configs.cameraSpeed * glm::normalize(glm::cross(configs.cameraFront, configs.upVector));
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        cameraPosn -= cameraSpeed * glm::normalize(glm::cross(cameraFront, upVector));
+        configs.cameraPosn -= configs.cameraSpeed * glm::normalize(glm::cross(configs.cameraFront, configs.upVector));
     }
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        cameraPosn += cameraSpeed * cameraFront;
+        configs.cameraPosn += configs.cameraSpeed * configs.cameraFront;
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        cameraPosn -= cameraSpeed * cameraFront;
+        configs.cameraPosn -= configs.cameraSpeed * configs.cameraFront;
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        cameraPosn += cameraSpeed * glm::normalize(glm::cross(glm::cross(cameraFront, upVector), cameraFront));
+        configs.cameraPosn += configs.cameraSpeed * glm::normalize(glm::cross(glm::cross(configs.cameraFront, configs.upVector), configs.cameraFront));
     }
     if ((glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) or (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS)) {
-        cameraPosn -= cameraSpeed * glm::normalize(glm::cross(glm::cross(cameraFront, upVector), cameraFront));
+        configs.cameraPosn -= configs.cameraSpeed * glm::normalize(glm::cross(glm::cross(configs.cameraFront, configs.upVector), configs.cameraFront));
     }
 }
 
@@ -106,8 +111,8 @@ void mouseCallback(GLFWwindow* window, double mouse_x, double mouse_y) {
         mouseInit = false;
     }
 
-    float delta_x = (mouse_x - last_x) * mouseSensitivity;
-    float delta_y = (last_y - mouse_y) * mouseSensitivity;          // negative causes y-axis inversion
+    float delta_x = (mouse_x - last_x) * configs.mouseSensitivity;
+    float delta_y = (last_y - mouse_y) * configs.mouseSensitivity;          // negative causes y-axis inversion
 
     last_x = mouse_x;
     last_y = mouse_y;
@@ -129,7 +134,27 @@ void mouseCallback(GLFWwindow* window, double mouse_x, double mouse_y) {
     float z_new = sinf(glm::radians(yaw)) * cosf(glm::radians(pitch));
 
     // Updating camera orientation according to calculations
-    cameraFront = glm::normalize(glm::vec3(x_new, y_new, z_new));
+    configs.cameraFront = glm::normalize(glm::vec3(x_new, y_new, z_new));
+
+    return;
+}
+
+void loadConfigs(const std::string filename) {
+    std::ifstream inFile(filename);
+    nlohmann::json json_file;
+    inFile >> json_file;
+
+    configs.FoV = json_file["FoV"];
+    configs.nearClippingVal = json_file["nearClippingVal"];
+    configs.farClippingVal = json_file["farClippingVal"];
+    configs.cameraPosn = glm::vec3(json_file["cameraPosn"][0], json_file["cameraPosn"][1], json_file["cameraPosn"][2]);
+    configs.cameraFront = glm::vec3(json_file["cameraFront"][0], json_file["cameraFront"][1], json_file["cameraFront"][2]);
+    configs.upVector = glm::vec3(json_file["upVector"][0], json_file["upVector"][1], json_file["upVector"][2]);
+    configs.cameraSpeed = json_file["cameraSpeed"];
+    configs.mouseSensitivity = json_file["mouseSensitivity"];
+    configs.gridStep = json_file["gridStep"];
+    configs.gridSquares = json_file["gridSquares"];
+    configs.y_grid = json_file["y_grid"];
 
     return;
 }
@@ -152,7 +177,7 @@ std::vector<Body> InitializeModels(GLuint shader) {
 
 Fabric InitializeGrid(GLuint shader) {
 
-    Fabric grid(gridStep, gridSquares, glm::vec3(0.0f, y_grid, 0.0f), {1.0f, 1.0f, 1.0f, 1.0f}, y_grid, shader);
+    Fabric grid(configs.gridStep, configs.gridSquares, glm::vec3(0.0f, configs.y_grid, 0.0f), {1.0f, 1.0f, 1.0f, 1.0f}, configs.y_grid, shader);
 
     return grid;
 }
@@ -169,12 +194,16 @@ void DrawModels(std::vector<Body> bodies) {
 
 void DrawGrid(Fabric grid) {
     grid.draw_fabric();
+
+    return;
 }
 
 
 
 // MAIN PROGRAM
 int main() {
+    // Loading Configurations
+    loadConfigs("data/Configurations.json");
 
     // Starting OpenGL
     glfwInit();
@@ -248,8 +277,8 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     // Transformation matrices involved in 3D
-    glm::mat4 View = glm::lookAt(cameraPosn, cameraPosn + cameraFront, upVector);
-    glm::mat4 Perspective = glm::perspective(glm::radians(FoV), aspectRatio, nearClippingVal, farClippingVal);
+    glm::mat4 View = glm::lookAt(configs.cameraPosn, configs.cameraPosn + configs.cameraFront, configs.upVector);
+    glm::mat4 Perspective = glm::perspective(glm::radians(configs.FoV), aspectRatio, configs.nearClippingVal, configs.farClippingVal);
 
     glUniformMatrix4fv(glGetUniformLocation(shader, "View"), 1, GL_FALSE, glm::value_ptr(View));
     glUniformMatrix4fv(glGetUniformLocation(shader, "Perspective"), 1, GL_FALSE, glm::value_ptr(Perspective));
@@ -268,7 +297,7 @@ int main() {
         processWindowCloseInput(window);
         glUseProgram(shader);
 
-        glm::mat4 View = glm::lookAt(cameraPosn, cameraPosn + cameraFront, upVector);
+        glm::mat4 View = glm::lookAt(configs.cameraPosn, configs.cameraPosn + configs.cameraFront, configs.upVector);
         glUniformMatrix4fv(glGetUniformLocation(shader, "View"), 1, GL_FALSE, glm::value_ptr(View));
         glUniformMatrix4fv(glGetUniformLocation(shader, "Perspective"), 1, GL_FALSE, glm::value_ptr(Perspective));
 
