@@ -168,23 +168,10 @@ void loadConfigs(const std::string filename) {
 }
 
 std::vector<Body> InitializeModels(GLuint shader) {
-// void InitializeModels(GLuint shader) {
-    // std::vector<Body> bodies;
+    
     Bodies bodies("data/BodiesData.json", configs.E_val_km, shader);
 
     return bodies.get_bodies();
-
-    // Planet 1
-    // float diameter1 = 1.5f;
-    // Body planet1(diameter1, glm::vec3(0.0f, 0.0f, 0.5f), {1.0f, 0.0f, 0.0f, 1.0f}, shader);
-    // bodies.push_back(planet1);
-
-    // // Planet 2
-    // float diameter2 = 0.5f;
-    // Body planet2(diameter2, glm::vec3(-1.0f, -0.5f, 0.5f), {1.0f, 0.0f, 1.0f, 1.0f}, shader);
-    // bodies.push_back(planet2);
-
-    // return bodies;
 }
 
 Fabric InitializeGrid(GLuint shader) {

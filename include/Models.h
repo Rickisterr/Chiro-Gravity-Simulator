@@ -47,6 +47,7 @@ class Bodies {
         float E_val_km;
     
         Bodies(const std::string filename, float E_val_km, GLuint shader);
+        int find_body_index(std::vector<std::string> body_names, std::string name);
         std::vector<Body> get_bodies();
 };
 

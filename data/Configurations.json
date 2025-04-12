@@ -1,14 +1,14 @@
 {
     "FoV" : 45.0,
     "nearClippingVal" : 0.5,
-    "farClippingVal" : 100.0,
+    "farClippingVal" : 120.0,
     "cameraPosn" : [-30.0, 4.0, 0.0],
     "cameraFront" : [0.0, 0.0, -1.0],
     "upVector" : [0.0, 1.0, 0.0],
     "cameraSpeed" : 0.4,
     "mouseSensitivity" : 0.2,
     "gridStep" : 1.0,
-    "gridSquares" : 45,
+    "gridSquares" : 100,
     "y_grid" : -1.0,
     "E_val_km" : 1e5
 }

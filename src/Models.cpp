@@ -27,9 +27,6 @@ Body::Body(float diameter, glm::vec3 position, std::vector<float> color, GLuint 
     this->create_body();
 
 }
-// Body::Body(GLuint shader) {
-//     this->shader = shader;
-// }
 
 void Body::compute_vertices() {
     // Emptying vertices data
@@ -144,25 +141,56 @@ Bodies::Bodies(const std::string filename, float E_val_km, GLuint shader) {
     inFile >> json_file;
 
     float diameter;
-    float init_distance;
+
+    std::vector<std::string> stars_name;
+    std::vector<std::vector<float>> stars_posn;
+    float init_distance_x;
+    float init_distance_z;
     std::vector<float> color;
+    std::string system;
+
+    for (auto& star : json_file["stars"]) {
+        diameter = float(star["diameter (km)"]) / this->E_val_km;
+        color = {star["color"][0], star["color"][1], star["color"][2], star["color"][3]};
+        init_distance_x = float(star["center position (km)"][0]) / this->E_val_km;
+        init_distance_z = float(star["center position (km)"][1]) / this->E_val_km;
+
+        stars_posn.push_back({init_distance_x, diameter / 2, init_distance_z});
+        stars_name.push_back(star["name"]);
+
+        Body body(diameter, glm::vec3(init_distance_x, diameter / 2, init_distance_z), color, shader);
+        this->bodies.push_back(body);
+    }
 
     for (auto& planet : json_file["planets"]) {
         diameter = float(planet["diameter (km)"]) / this->E_val_km;
-        init_distance = float(planet["init_distance (km)"]) / this->E_val_km;
+        init_distance_x = float(planet["init_distance (km)"]) / this->E_val_km;
+        init_distance_z = 0;
         color = {planet["color"][0], planet["color"][1], planet["color"][2], planet["color"][3]};
+        system = planet["system"];
+        int temp_i = this->find_body_index(stars_name, system);
 
-        Body body(diameter, glm::vec3(init_distance, diameter / 2, 0.0f), color, shader);
+        if (temp_i != -1) {
+            init_distance_x += stars_posn[temp_i][0];
+            init_distance_z += stars_posn[temp_i][2];
+        }
+        
+        Body body(diameter, glm::vec3(init_distance_x, diameter / 2, init_distance_z), color, shader);
         this->bodies.push_back(body);
     }
+}
 
-    for (auto& planet : json_file["stars"]) {
-        diameter = float(planet["diameter (km)"]) / this->E_val_km;
-        color = {planet["color"][0], planet["color"][1], planet["color"][2], planet["color"][3]};
+int Bodies::find_body_index(std::vector<std::string> body_names, std::string name) {
+    int size = body_names.size();
 
-        Body body(diameter, glm::vec3(0.0f, diameter / 2, 0.0f), color, shader);
-        this->bodies.push_back(body);
+    for (int i = 0; i < size; i++) {
+
+        if (body_names[i] == name) {
+            return i;
+        }
     }
+
+    return -1;
 }
 
 std::vector<Body> Bodies::get_bodies() {
