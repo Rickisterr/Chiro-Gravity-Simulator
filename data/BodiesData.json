@@ -2,43 +2,28 @@
     "planets" : [
         {
             "name" : "Blurth",
-            "mass (kg)" : 5.972168e24,
+            "mass (kg)" : 5.972168e34,
             "diameter (km)" : 4e5,
-            "init_distance (km)" : 1.521e6,
+            "init_distance (km)" : 4.521e6,
             "system" : "Blun",
             "color" : [0.0, 0.0, 1.0, 1.0]
         },
         {
             "name" : "Blurth2",
-            "mass (kg)" : 5.972168e24,
+            "mass (kg)" : 5.972168e34,
             "diameter (km)" : 2e5,
             "init_distance (km)" : 1.021e6,
             "system" : "Blun",
             "color" : [1.0, 0.0, 1.0, 1.0]
-        },
-        {
-            "name" : "Gorth",
-            "mass (kg)" : 5.972168e24,
-            "diameter (km)" : 2e5,
-            "init_distance (km)" : 2.21e6,
-            "system" : "Glun",
-            "color" : [1.0, 0.5, 0.5, 1.0]
         }
     ],
     "stars" : [
         {
             "name" : "Blun",
-            "mass (kg)" : 3.9885e30,
+            "mass (kg)" : 10.9885e35,
             "diameter (km)" : 1.957e5,
-            "center position (km)" : [3e5, 2e5],
+            "center position (km)" : [1e5, 3e5],
             "color" : [1.0, 1.0, 0.0, 1.0]
-        },
-        {
-            "name" : "Glun",
-            "mass (kg)" : 2.9885e30,
-            "diameter (km)" : 0.457e5,
-            "center position (km)" : [-1e6, -1.5e6],
-            "color" : [0.8, 0.6, 0.1, 1.0]
         }
     ]
 }

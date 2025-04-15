@@ -30,6 +30,11 @@ struct Config {
     int gridSquares;
     float y_grid;
     float E_val_km;
+    float E_val_kg;
+    float distance_cutoff;
+    float G_const;
+    float min_dist;
+    float deformation_scale;
 } configs;
 
 // Global variables at start of program
@@ -163,20 +168,25 @@ void loadConfigs(const std::string filename) {
     configs.gridSquares = json_file["gridSquares"];
     configs.y_grid = json_file["y_grid"];
     configs.E_val_km = json_file["E_val_km"];
+    configs.E_val_kg = json_file["E_val_kg"];
+    configs.distance_cutoff = json_file["distance_cutoff"];
+    configs.G_const = json_file["G_const"];
+    configs.min_dist = json_file["min_dist"];
+    configs.deformation_scale = json_file["deformation_scale"];
 
     return;
 }
 
 std::vector<Body> InitializeModels(GLuint shader) {
     
-    Bodies bodies("data/BodiesData.json", configs.E_val_km, shader);
+    Bodies bodies("data/BodiesData.json", configs.E_val_km, configs.E_val_kg, shader);
 
     return bodies.get_bodies();
 }
 
-Fabric InitializeGrid(GLuint shader) {
+Fabric InitializeGrid(std::vector<Body> bodies_list, GLuint shader) {
 
-    Fabric grid(configs.gridStep, configs.gridSquares, glm::vec3(0.0f, configs.y_grid, 0.0f), {1.0f, 1.0f, 1.0f, 1.0f}, configs.y_grid, shader);
+    Fabric grid(bodies_list, configs.E_val_km, configs.E_val_kg, configs.distance_cutoff, configs.gridStep, configs.gridSquares, glm::vec3(0.0f, configs.y_grid, 0.0f), {1.0f, 1.0f, 1.0f, 1.0f}, configs.y_grid, configs.G_const, configs.min_dist, configs.deformation_scale, shader);
 
     return grid;
 }
@@ -270,7 +280,7 @@ int main() {
     // Initializing Models and Space Time Fabric Grid
     // std::vector<Body> bodies = InitializeModels(shader);
     std::vector<Body> bodies = InitializeModels(shader);
-    Fabric grid = InitializeGrid(shader);
+    Fabric grid = InitializeGrid(bodies, shader);
 
     // Using shader program
     glUseProgram(shader);

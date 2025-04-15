@@ -15,7 +15,9 @@ const float pi = acosf(-1);
 int rowsCount = 20;
 int columnsCount = 30;
 
-Body::Body(float diameter, glm::vec3 position, std::vector<float> color, GLuint shader) {
+Body::Body(std::string name, float mass, float diameter, glm::vec3 position, std::vector<float> color, GLuint shader) {
+    this->name = name;
+    this->mass = mass;
 
     this->position = position;
     this->diameter = diameter;
@@ -72,7 +74,7 @@ void Body::compute_vertices() {
             float y4 = r_cosphi4 * sinf(rowAngle4) + this->position.y;
             float z4 = this->diameter * sinf(columnAngle4) + this->position.z;
             
-            // First triangle (1, 2, 3)
+            // First triangle
             vertices.push_back(x1);
             vertices.push_back(y1);
             vertices.push_back(z1);
@@ -85,7 +87,7 @@ void Body::compute_vertices() {
             vertices.push_back(y3);
             vertices.push_back(z3);
             
-            // Second triangle (2, 4, 3)
+            // Second triangle
             vertices.push_back(x2);
             vertices.push_back(y2);
             vertices.push_back(z2);
@@ -104,10 +106,6 @@ void Body::compute_vertices() {
 }
 
 void Body::draw_body() {
-    glm::mat4 Model = glm::mat4(1.0f);
-    Model = glm::translate(Model, this->position);
-    glUniformMatrix4fv(glGetUniformLocation(this->shader, "Model"), 1, GL_FALSE, glm::value_ptr(Model));
-
     glUniform4f(glGetUniformLocation(this->shader, "currentColor"), this->color[0], this->color[1], this->color[2], this->color[3]);
     glBindVertexArray(this->VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 3);
@@ -132,9 +130,10 @@ void Body::create_body() {
 }
 
 
-Bodies::Bodies(const std::string filename, float E_val_km, GLuint shader) {
-    // Power of 10 value of measurement in km
+Bodies::Bodies(const std::string filename, float E_val_km, float E_val_kg, GLuint shader) {
+    // Power of 10 value of measurement in km and kg
     this->E_val_km = E_val_km;
+    this->E_val_kg = E_val_kg;
 
     std::ifstream inFile(filename);
     nlohmann::json json_file;
@@ -142,6 +141,8 @@ Bodies::Bodies(const std::string filename, float E_val_km, GLuint shader) {
 
     float diameter;
 
+    std::string name;
+    float mass;
     std::vector<std::string> stars_name;
     std::vector<std::vector<float>> stars_posn;
     float init_distance_x;
@@ -150,19 +151,23 @@ Bodies::Bodies(const std::string filename, float E_val_km, GLuint shader) {
     std::string system;
 
     for (auto& star : json_file["stars"]) {
+        name = star["name"];
+        mass = float(star["mass (kg)"]) / this->E_val_kg;
         diameter = float(star["diameter (km)"]) / this->E_val_km;
         color = {star["color"][0], star["color"][1], star["color"][2], star["color"][3]};
         init_distance_x = float(star["center position (km)"][0]) / this->E_val_km;
         init_distance_z = float(star["center position (km)"][1]) / this->E_val_km;
 
         stars_posn.push_back({init_distance_x, diameter / 2, init_distance_z});
-        stars_name.push_back(star["name"]);
+        stars_name.push_back(name);
 
-        Body body(diameter, glm::vec3(init_distance_x, diameter / 2, init_distance_z), color, shader);
+        Body body(name, mass, diameter, glm::vec3(init_distance_x, diameter / 2, init_distance_z), color, shader);
         this->bodies.push_back(body);
     }
 
     for (auto& planet : json_file["planets"]) {
+        name = planet["name"];
+        mass = float(planet["mass (kg)"]) / this->E_val_kg;
         diameter = float(planet["diameter (km)"]) / this->E_val_km;
         init_distance_x = float(planet["init_distance (km)"]) / this->E_val_km;
         init_distance_z = 0;
@@ -175,7 +180,7 @@ Bodies::Bodies(const std::string filename, float E_val_km, GLuint shader) {
             init_distance_z += stars_posn[temp_i][2];
         }
         
-        Body body(diameter, glm::vec3(init_distance_x, diameter / 2, init_distance_z), color, shader);
+        Body body(name, mass, diameter, glm::vec3(init_distance_x, diameter / 2, init_distance_z), color, shader);
         this->bodies.push_back(body);
     }
 }

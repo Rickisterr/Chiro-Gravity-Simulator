@@ -1,14 +1,19 @@
 {
     "FoV" : 45.0,
     "nearClippingVal" : 0.5,
-    "farClippingVal" : 120.0,
-    "cameraPosn" : [-30.0, 4.0, 0.0],
+    "farClippingVal" : 500.0,
+    "cameraPosn" : [-100.0, 4.0, 0.0],
     "cameraFront" : [0.0, 0.0, -1.0],
     "upVector" : [0.0, 1.0, 0.0],
-    "cameraSpeed" : 0.4,
+    "cameraSpeed" : 5.0,
     "mouseSensitivity" : 0.2,
-    "gridStep" : 1.0,
-    "gridSquares" : 100,
-    "y_grid" : -1.0,
-    "E_val_km" : 1e5
+    "gridStep" : 0.5,
+    "gridSquares" : 300,
+    "y_grid" : -10.0,
+    "E_val_km" : 5e4,
+    "E_val_kg" : 1e5,
+    "distance_cutoff" : 1e15,
+    "G_const" : 6.67e-11,
+    "min_dist" : 1,
+    "deformation_scale" : 1e0
 }

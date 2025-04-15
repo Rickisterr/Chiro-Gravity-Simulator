@@ -28,14 +28,15 @@ class Body {
     */
     public:
         GLuint VAO, VBO;
+        std::string name;
+        float mass;
         float diameter;
         glm::vec3 position;
         std::vector<float> vertices;
         GLuint shader;
         std::vector<float> color;
 
-        Body(float diameter, glm::vec3 position, std::vector<float> color, GLuint shader);
-        // Body(GLuint shader);
+        Body(std::string name, float mass, float diameter, glm::vec3 position, std::vector<float> color, GLuint shader);
         void compute_vertices();
         void create_body();
         void draw_body();
@@ -45,8 +46,9 @@ class Bodies {
     public:
         std::vector<Body> bodies;
         float E_val_km;
+        float E_val_kg;
     
-        Bodies(const std::string filename, float E_val_km, GLuint shader);
+        Bodies(const std::string filename, float E_val_km, float E_val_kg, GLuint shader);
         int find_body_index(std::vector<std::string> body_names, std::string name);
         std::vector<Body> get_bodies();
 };
