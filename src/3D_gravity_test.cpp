@@ -35,6 +35,7 @@ struct Config {
     float G_const;
     float min_dist;
     float deformation_scale;
+    float time_step;
 } configs;
 
 // Global variables at start of program
@@ -171,15 +172,17 @@ void loadConfigs(const std::string filename) {
     configs.E_val_kg = json_file["E_val_kg"];
     configs.distance_cutoff = json_file["distance_cutoff"];
     configs.G_const = json_file["G_const"];
+    configs.G_const *= configs.E_val_kg / (glm::pow(configs.E_val_km, 3) * 1e9);
     configs.min_dist = json_file["min_dist"];
     configs.deformation_scale = json_file["deformation_scale"];
+    configs.time_step = json_file["time_step"];
 
     return;
 }
 
 std::vector<Body> InitializeModels(GLuint shader) {
     
-    Bodies bodies("data/BodiesData.json", configs.E_val_km, configs.E_val_kg, shader);
+    Bodies bodies("data/BodiesData.json", configs.E_val_km, configs.E_val_kg, shader, configs.time_step);
 
     return bodies.get_bodies();
 }
@@ -191,18 +194,19 @@ Fabric InitializeGrid(std::vector<Body> bodies_list, GLuint shader) {
     return grid;
 }
 
-void DrawModels(std::vector<Body> bodies) {
+void DrawModels(std::vector<Body>& bodies) {
     int size = bodies.size();
     
-    for (int idx=0; idx<size; idx++) {
+    for (int idx = 0; idx < size; idx++) {
+        bodies[idx].update_body(bodies, size, configs.G_const);
         bodies[idx].draw_body();
     }
 
     return;
 }
 
-void DrawGrid(Fabric grid) {
-    grid.draw_fabric();
+void DrawGrid(Fabric grid, std::vector<Body>& bodies) {
+    grid.draw_fabric(bodies);
 
     return;
 }
@@ -313,7 +317,7 @@ int main() {
 
         // Drawing Models
         DrawModels(bodies);
-        DrawGrid(grid);
+        DrawGrid(grid, bodies);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

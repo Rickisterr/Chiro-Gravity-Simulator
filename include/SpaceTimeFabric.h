@@ -44,7 +44,7 @@ class Fabric {
         Fabric(std::vector<Body> bodies, float E_val_km, float E_val_kg, float distance_cutoff, float gridStep, int gridSquares, glm::vec3 position, std::vector<float> color, float y_value, float G_const, float min_dist, float deformation_scale, GLuint shader);
         void compute_vertices();
         void create_fabric();
-        void draw_fabric();
+        void draw_fabric(std::vector<Body> bodies);
 };
 
 #endif

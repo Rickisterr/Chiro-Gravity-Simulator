@@ -29,7 +29,7 @@ Fabric::Fabric(std::vector<Body> bodies, float E_val_km, float E_val_kg, float d
     this->y_value = y_value;
     
     this->color = color;
-    this->G_const = G_const * this->E_val_kg / (glm::pow(this->E_val_km, 3) * 1e9);
+    this->G_const = G_const;
     this->min_dist = min_dist;
     this->deformation_scale = deformation_scale;
 
@@ -43,7 +43,8 @@ Fabric::Fabric(std::vector<Body> bodies, float E_val_km, float E_val_kg, float d
 
 void Fabric::compute_vertices() {
     // Emptzing vertices vector before calculation
-    std::vector<float>().swap(this->vertices);
+    // std::vector<float>().swap(this->vertices);
+    vertices.clear();
 
     float x, z_1, z_2;
     float x_1, x_2, z;
@@ -57,7 +58,7 @@ void Fabric::compute_vertices() {
     float gravity_field;
 
     // Getting masses and positions for all bodies in scene in order
-    for (int body = 0; body <= bodies_size; body++) {
+    for (int body = 0; body < bodies_size; body++) {
         masses.push_back(bodies[body].mass);
         positions.push_back(bodies[body].position);
     }
@@ -75,7 +76,7 @@ void Fabric::compute_vertices() {
 
             gravity_field = 0;
 
-            for (int body = 0; body <= bodies_size; body++) {
+            for (int body = 0; body < bodies_size; body++) {
                 distance = glm::sqrt(glm::pow(x - positions[body][0], 2) + glm::pow(z_1 - positions[body][2], 2) + glm::pow(0 - positions[body][1], 2));
 
                 if (distance <= this->min_dist) {
@@ -93,7 +94,7 @@ void Fabric::compute_vertices() {
 
             gravity_field = 0;
 
-            for (int body = 0; body <= bodies_size; body++) {
+            for (int body = 0; body < bodies_size; body++) {
                 distance = glm::sqrt(glm::pow(x - positions[body][0], 2) + glm::pow(z_2 - positions[body][2], 2) + glm::pow(0 - positions[body][1], 2));
 
                 if (distance <= this->min_dist) {
@@ -124,7 +125,7 @@ void Fabric::compute_vertices() {
 
             gravity_field = 0;
 
-            for (int body = 0; body <= bodies_size; body++) {
+            for (int body = 0; body < bodies_size; body++) {
                 distance = glm::sqrt(glm::pow(x_1 - positions[body][0], 2) + glm::pow(z - positions[body][2], 2) + glm::pow(0 - positions[body][1], 2));
 
                 if (distance <= this->min_dist) {
@@ -142,7 +143,7 @@ void Fabric::compute_vertices() {
 
             gravity_field = 0;
 
-            for (int body = 0; body <= bodies_size; body++) {
+            for (int body = 0; body < bodies_size; body++) {
                 distance = glm::sqrt(glm::pow(x_2 - positions[body][0], 2) + glm::pow(z - positions[body][2], 2) + glm::pow(0 - positions[body][1], 2));
 
                 if (distance <= this->min_dist) {
@@ -163,7 +164,12 @@ void Fabric::compute_vertices() {
     return;
 }
 
-void Fabric::draw_fabric() {
+void Fabric::draw_fabric(std::vector<Body> bodies) {
+    this->bodies = bodies;
+    
+    this->compute_vertices();
+    this->create_fabric();
+
     glm::mat4 Model = glm::mat4(1.0f);
     Model = glm::translate(Model, this->position);
     glUniformMatrix4fv(glGetUniformLocation(this->shader, "Model"), 1, GL_FALSE, glm::value_ptr(Model));

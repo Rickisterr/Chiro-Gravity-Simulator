@@ -1,3 +1,7 @@
+This text file contains a list of important body systems that may be inputted in 
+json format into BodiesData.json to simulate the various gravitational systems.
+
+System 1:
 {
     "planets" : [
         {

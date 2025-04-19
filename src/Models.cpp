@@ -15,15 +15,18 @@ const float pi = acosf(-1);
 int rowsCount = 20;
 int columnsCount = 30;
 
-Body::Body(std::string name, float mass, float diameter, glm::vec3 position, std::vector<float> color, GLuint shader) {
+Body::Body(std::string name, float mass, float diameter, glm::vec3 position, glm::vec3 init_velocity, std::vector<float> color, GLuint shader, float time_step) {
     this->name = name;
     this->mass = mass;
 
     this->position = position;
     this->diameter = diameter;
+    this->velocity = init_velocity;
     this->color = color;
 
     this->shader = shader;
+
+    this->time_step = time_step;
 
     this->compute_vertices();
     this->create_body();
@@ -106,6 +109,7 @@ void Body::compute_vertices() {
 }
 
 void Body::draw_body() {
+
     glUniform4f(glGetUniformLocation(this->shader, "currentColor"), this->color[0], this->color[1], this->color[2], this->color[3]);
     glBindVertexArray(this->VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 3);
@@ -129,8 +133,34 @@ void Body::create_body() {
     return;
 }
 
+void Body::update_body(std::vector<Body> bodies, int bodies_num, float G_const) {
+    glm::vec3 gravity = glm::vec3(0.0, 0.0, 0.0);
+    float gravity_total;
+    glm::vec3 R;
+    float R_total;
+    glm::vec3 previous_velocity = this->velocity;
 
-Bodies::Bodies(const std::string filename, float E_val_km, float E_val_kg, GLuint shader) {
+    for (int idx = 0; idx < bodies_num; idx++) {
+        if (bodies[idx].name != this->name) {
+            R = glm::vec3(this->position[0] - bodies[idx].position[0], this->position[1] - bodies[idx].position[1], this->position[2] - bodies[idx].position[2]);
+            R_total = glm::sqrt(glm::pow(R[0], 2) + glm::pow(R[1], 2) + glm::pow(R[2], 2));
+
+            gravity_total = -(G_const * bodies[idx].mass) / (glm::pow(R_total, 3));
+            gravity += glm::vec3(gravity_total * R[0], gravity_total * R[1], gravity_total * R[2]);
+        }
+    }
+
+    this->velocity += gravity * this->time_step;
+    this->position += (previous_velocity * this->time_step) + glm::vec3(gravity[0] * 0.5, gravity[1] * 0.5, gravity[2] * 0.5) * (this->time_step * this->time_step);
+
+    this->compute_vertices();
+    this->create_body();
+
+    return;
+}
+
+
+Bodies::Bodies(const std::string filename, float E_val_km, float E_val_kg, GLuint shader, float time_step) {
     // Power of 10 value of measurement in km and kg
     this->E_val_km = E_val_km;
     this->E_val_kg = E_val_kg;
@@ -147,6 +177,7 @@ Bodies::Bodies(const std::string filename, float E_val_km, float E_val_kg, GLuin
     std::vector<std::vector<float>> stars_posn;
     float init_distance_x;
     float init_distance_z;
+    glm::vec3 init_velocity;
     std::vector<float> color;
     std::string system;
 
@@ -157,11 +188,12 @@ Bodies::Bodies(const std::string filename, float E_val_km, float E_val_kg, GLuin
         color = {star["color"][0], star["color"][1], star["color"][2], star["color"][3]};
         init_distance_x = float(star["center position (km)"][0]) / this->E_val_km;
         init_distance_z = float(star["center position (km)"][1]) / this->E_val_km;
+        init_velocity = glm::vec3(float(star["init_velocity (km/s)"][0]) / this->E_val_km, float(star["init_velocity (km/s)"][1]) / this->E_val_km, float(star["init_velocity (km/s)"][2]) / this->E_val_km);
 
         stars_posn.push_back({init_distance_x, diameter / 2, init_distance_z});
         stars_name.push_back(name);
 
-        Body body(name, mass, diameter, glm::vec3(init_distance_x, diameter / 2, init_distance_z), color, shader);
+        Body body(name, mass, diameter, glm::vec3(init_distance_x, diameter / 2, init_distance_z), init_velocity, color, shader, time_step);
         this->bodies.push_back(body);
     }
 
@@ -171,6 +203,7 @@ Bodies::Bodies(const std::string filename, float E_val_km, float E_val_kg, GLuin
         diameter = float(planet["diameter (km)"]) / this->E_val_km;
         init_distance_x = float(planet["init_distance (km)"]) / this->E_val_km;
         init_distance_z = 0;
+        init_velocity = glm::vec3(float(planet["init_velocity (km/s)"][0]) / this->E_val_km, float(planet["init_velocity (km/s)"][1]) / this->E_val_km, float(planet["init_velocity (km/s)"][2]) / this->E_val_km);
         color = {planet["color"][0], planet["color"][1], planet["color"][2], planet["color"][3]};
         system = planet["system"];
         int temp_i = this->find_body_index(stars_name, system);
@@ -180,7 +213,7 @@ Bodies::Bodies(const std::string filename, float E_val_km, float E_val_kg, GLuin
             init_distance_z += stars_posn[temp_i][2];
         }
         
-        Body body(name, mass, diameter, glm::vec3(init_distance_x, diameter / 2, init_distance_z), color, shader);
+        Body body(name, mass, diameter, glm::vec3(init_distance_x, diameter / 2, init_distance_z), init_velocity, color, shader, time_step);
         this->bodies.push_back(body);
     }
 }
