@@ -10,7 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-extern float max_dy;
+extern float precision;
 
 class Fabric {
     /*

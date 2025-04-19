@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+// float precision = 1000.0f;
 
 Fabric::Fabric(std::vector<Body> bodies, float E_val_km, float E_val_kg, float distance_cutoff, float gridStep, int gridSquares, glm::vec3 position, std::vector<float> color, float y_value, float G_const, float min_dist, float deformation_scale, GLuint shader) {
     this->bodies = bodies;
@@ -78,7 +79,8 @@ void Fabric::compute_vertices() {
 
             for (int body = 0; body < bodies_size; body++) {
                 distance = glm::sqrt(glm::pow(x - positions[body][0], 2) + glm::pow(z_1 - positions[body][2], 2) + glm::pow(0 - positions[body][1], 2));
-
+                distance = (distance * precision) / precision;
+                
                 if (distance <= this->min_dist) {
                     distance = this->min_dist;
                 }
@@ -96,6 +98,7 @@ void Fabric::compute_vertices() {
 
             for (int body = 0; body < bodies_size; body++) {
                 distance = glm::sqrt(glm::pow(x - positions[body][0], 2) + glm::pow(z_2 - positions[body][2], 2) + glm::pow(0 - positions[body][1], 2));
+                distance = (distance * precision) / precision;
 
                 if (distance <= this->min_dist) {
                     distance = this->min_dist;
@@ -166,7 +169,7 @@ void Fabric::compute_vertices() {
 
 void Fabric::draw_fabric(std::vector<Body> bodies) {
     this->bodies = bodies;
-    
+
     this->compute_vertices();
     this->create_fabric();
 

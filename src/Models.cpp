@@ -14,6 +14,7 @@ const float pi = acosf(-1);
 
 int rowsCount = 20;
 int columnsCount = 30;
+float precision = 1000.0;
 
 Body::Body(std::string name, float mass, float diameter, glm::vec3 position, glm::vec3 init_velocity, std::vector<float> color, GLuint shader, float time_step) {
     this->name = name;
@@ -52,6 +53,9 @@ void Body::compute_vertices() {
             float x1 = r_cosphi1 * cosf(rowAngle1) + this->position.x;
             float y1 = r_cosphi1 * sinf(rowAngle1) + this->position.y;
             float z1 = this->diameter * sinf(columnAngle1) + this->position.z;
+            x1 = (x1 * precision) / precision;
+            y1 = (y1 * precision) / precision;
+            z1 = (z1 * precision) / precision;
             
             // Vertex 2: (i+1, j)
             float columnAngle2 = (pi / 2) - ((i+1) * columnStep);
@@ -60,6 +64,9 @@ void Body::compute_vertices() {
             float x2 = r_cosphi2 * cosf(rowAngle2) + this->position.x;
             float y2 = r_cosphi2 * sinf(rowAngle2) + this->position.y;
             float z2 = this->diameter * sinf(columnAngle2) + this->position.z;
+            x2 = (x2 * precision) / precision;
+            y2 = (y2 * precision) / precision;
+            z2 = (z2 * precision) / precision;
             
             // Vertex 3: (i, j+1)
             float columnAngle3 = (pi / 2) - (i * columnStep);
@@ -68,6 +75,9 @@ void Body::compute_vertices() {
             float x3 = r_cosphi3 * cosf(rowAngle3) + this->position.x;
             float y3 = r_cosphi3 * sinf(rowAngle3) + this->position.y;
             float z3 = this->diameter * sinf(columnAngle3) + this->position.z;
+            x3 = (x3 * precision) / precision;
+            y3 = (y3 * precision) / precision;
+            z3 = (z3 * precision) / precision;
             
             // Vertex 4: (i+1, j+1)
             float columnAngle4 = (pi / 2) - ((i+1) * columnStep);
@@ -76,6 +86,9 @@ void Body::compute_vertices() {
             float x4 = r_cosphi4 * cosf(rowAngle4) + this->position.x;
             float y4 = r_cosphi4 * sinf(rowAngle4) + this->position.y;
             float z4 = this->diameter * sinf(columnAngle4) + this->position.z;
+            x4 = (x4 * precision) / precision;
+            y4 = (y4 * precision) / precision;
+            z4 = (z4 * precision) / precision;
             
             // First triangle
             vertices.push_back(x1);
@@ -142,16 +155,18 @@ void Body::update_body(std::vector<Body> bodies, int bodies_num, float G_const) 
 
     for (int idx = 0; idx < bodies_num; idx++) {
         if (bodies[idx].name != this->name) {
-            R = glm::vec3(this->position[0] - bodies[idx].position[0], this->position[1] - bodies[idx].position[1], this->position[2] - bodies[idx].position[2]);
+            R = glm::vec3(this->position[0] - bodies[idx].position[0], this->position[1], this->position[2] - bodies[idx].position[2]);
             R_total = glm::sqrt(glm::pow(R[0], 2) + glm::pow(R[1], 2) + glm::pow(R[2], 2));
 
             gravity_total = -(G_const * bodies[idx].mass) / (glm::pow(R_total, 3));
-            gravity += glm::vec3(gravity_total * R[0], gravity_total * R[1], gravity_total * R[2]);
+            gravity += glm::vec3(gravity_total * R[0], 0, gravity_total * R[2]);
+            gravity = (gravity * precision) / precision;
         }
     }
 
     this->velocity += gravity * this->time_step;
-    this->position += (previous_velocity * this->time_step) + glm::vec3(gravity[0] * 0.5, gravity[1] * 0.5, gravity[2] * 0.5) * (this->time_step * this->time_step);
+    this->velocity = (this->velocity * precision) / precision;
+    this->position += (previous_velocity * this->time_step) + glm::vec3(gravity[0] * 0.5, 0, gravity[2] * 0.5) * (this->time_step * this->time_step);
 
     this->compute_vertices();
     this->create_body();

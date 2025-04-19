@@ -16,5 +16,5 @@
     "G_const" : 6.67e-11,
     "min_dist" : 1,
     "deformation_scale" : 1e1,
-    "time_step" : 0.05
+    "time_step" : 0.2
 }

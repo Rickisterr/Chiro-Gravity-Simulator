@@ -15,6 +15,7 @@
 extern int rowsCount;
 extern int columnsCount;
 extern const float pi;
+extern float precision;
 
 class Body {
     /*
