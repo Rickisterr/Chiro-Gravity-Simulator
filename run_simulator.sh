@@ -1,7 +1,8 @@
 #!/bin/bash
 
-filename=$1_gravity_test
-build=$2
+# filename=$1_gravity_test
+filename=3D_gravity_sim
+build=$1
 
 if [ -e "src/$filename.cpp" ]
 then

@@ -1,9 +1,9 @@
 param (
-    [string]$filename,
     [string]$build
 )
 
-$filename = "${filename}_gravity_test"
+# $filename = "${filename}_gravity_test"
+$filename = "3D_gravity_sim"
 
 if (Test-Path "src/$filename.cpp") {
     switch ($build) {
