@@ -34,3 +34,37 @@ System 1:
         }
     ]
 }
+
+System 2:
+{
+    "planets" : [
+        {
+            "name" : "Bromb",
+            "mass (kg)" : 1.972168e34,
+            "diameter (km)" : 4e5,
+            "init_distance (km)" : 6.521e6,
+            "init_velocity (km/s)": [0.0, 0.0, -10e5],
+            "system" : "Blun",
+            "color" : [0.0, 0.0, 1.0, 1.0]
+        },
+        {
+            "name" : "Neumo",
+            "mass (kg)" : 1.972168e34,
+            "diameter (km)" : 2e5,
+            "init_distance (km)" : 3.021e6,
+            "init_velocity (km/s)": [0.0, 0.0, -15e5],
+            "system" : "Blun",
+            "color" : [1.0, 0.0, 1.0, 1.0]
+        }
+    ],
+    "stars" : [
+        {
+            "name" : "Fan",
+            "mass (kg)" : 80.9885e36,
+            "diameter (km)" : 7.957e5,
+            "center position (km)" : [1e5, 3e5],
+            "init_velocity (km/s)": [0.0, 0.0, 0.0],
+            "color" : [1.0, 1.0, 0.0, 1.0]
+        }
+    ]
+}
